@@ -1,0 +1,13 @@
+LumpWorld!!!
+
+1. How to Load
+Simply use flash player
+
+2.How to Play
+Planets in red is yours, select units from them with Q(Miners) and W(Attackers) 
+and leftclick another planet to send them there.
+Buy more units by pressing A or S (same story).
+
+Made by Kristian Pilegaard Jense
+
+I WANTED IT TO BE BETTER!
