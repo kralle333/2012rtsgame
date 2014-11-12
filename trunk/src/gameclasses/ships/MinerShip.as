@@ -1,6 +1,7 @@
 package gameclasses.ships
 {
 	import adobe.utils.CustomActions;
+	import flash.display.Shape;
 	import flash.geom.ColorTransform;
 	import gameclasses.*;
 	import gameclasses.planets.*;
@@ -29,6 +30,9 @@ package gameclasses.ships
 		private var rayTimer:FlxTimer;
 		
 		private var miningPlanet:Planet;
+		
+		static public var cost:int = 10;
+		static public var buildTime:Number = 10;
 		
 		public function MinerShip()
 		{
@@ -61,6 +65,10 @@ package gameclasses.ships
 		override public function update():void
 		{
 			super.update();
+			if (planet != null)
+			{
+				circlePlanet();
+			}
 			if (!addedCurrentPlanet && planetFlyingTo != null && planet != null)
 			{
 				if (planet.owner == owner)

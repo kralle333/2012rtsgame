@@ -4,6 +4,7 @@ package levels
 	import gameclasses.*;
 	import gameclasses.ships.*;
 	import gameclasses.planets.*;
+	import gameclasses.players.*;
 	public class Level2 extends Level
 	{
 		public function Level2() 
@@ -12,6 +13,7 @@ package levels
 			var p1:Planet = new Planet(300,30,200,"HQ");
 			var p2:GoldPlanet = new GoldPlanet(100, 100, 100, 1000);
 			var human:Player = new Player(0xFF0000, true);
+			shipManager = new ShipManager(200, [p1,p2]);
 			p1.setOwnership(human);
 			planets.add(p1);
 			planets.add(p2);

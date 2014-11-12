@@ -1,25 +1,26 @@
 package states
 {
-	import gameclasses.buildmenu.BuildMenuManager;
+	import gameclasses.menu.building.*;
+	import gameclasses.menu.PlanetInfo;
+	import gameclasses.planets.Planet;
+	import gameclasses.menu.*;
+	import gameclasses.menu.building.*;
 	import gameclasses.ships.*;
 	import levels.Level;
-	import gameclasses.menu.*;
 	import gameclasses.*;
+	import misc.FogOfWar;
+	import misc.ShipMath;
 	import org.flixel.*;
 	
 	public class LoadLevelState extends FlxState
 	{
 		private var loaded:Boolean = false;
-		private var planetsLoaded:Boolean = false;
-		private var shipsLoaded:Boolean = false;
-		private var menusLoaded:Boolean = false;
-		private var minimapLoaded:Boolean = false;
 		
 		private var introText:FlxText = new FlxText(30, 30, FlxG.width, "Loading...");
 		private var introTextLoaded:Boolean = false;
 		private var alphaSpeed:Number = 0.01;
 		private var playState:PlayState = new PlayState();
-		private var currentCommand = 0;
+		private var currentCommand:int = 0;
 		
 		[Embed(source='../../assets/menu.png')]
 		private var menuTexture:Class;
@@ -52,6 +53,7 @@ package states
 			if (!loaded && introText.alpha > 0.5)
 			{
 				loadPlayState();
+				FlxG.bgColor = 0xff386860;
 			}
 		}
 		
@@ -69,7 +71,6 @@ package states
 					case 1: 
 						playState.add(playState.currentLevel.shipManager);
 						break;
-					
 					case 2: 
 						for (var i:int = 0; i < playState.currentLevel.shipManager.length; i++)
 						{
@@ -81,67 +82,96 @@ package states
 						}
 						break;
 					case 3: 
+						for (var j:int = 0; j < playState.currentLevel.planets.length; j++)
+						{
+							playState.add(playState.currentLevel.planets.members[j].gradiantBorder);
+						}
+						break;
+					case 4: 
 						playState.add(playState.currentLevel.shipManager.bullets);
 						break;
-					
-					case 4: 
-						playState.add(menu);
-						break;
 					case 5: 
-						playState.add(playState.menuManager.returnPlanetInfoTextAsFlxGroup());
+						playState.fogOfWar = new FogOfWar(playState.currentLevel.humanPlayer, new FlxPoint(playState.currentLevel.width, playState.currentLevel.height));
+						//playState.add(playState.fogOfWar);
+						
 						break;
 					case 6: 
-						playState.add(playState.menuManager.returnMenusAsFlxGroup());
+						playState.add(menu);
 						break;
 					case 7: 
-						playState.add(playState.menuManager.returnMenuTextsAsFlxGroup());
+						playState.planetInfo = new PlanetInfo();;
+						playState.add(playState.planetInfo.returnTextAsFlxGroup());
 						break;
 					case 8: 
-						playState.add(playState.goldText);
+						playState.shipSelection = new ShipSelection(new FlxPoint(FlxG.width/2,FlxG.height-100));
+						playState.add(playState.shipSelection.shipIcons);
+						playState.add(playState.shipSelection.buttons[1]);
+						playState.add(playState.shipSelection.buttons[2]);
+						playState.add(playState.shipSelection.buttons[3]);
+						playState.add(playState.shipSelection.flyRouting);
+						playState.add(playState.shipSelection.healthBars);
+						playState.add(playState.shipSelection.shipsSelectionBoxes);
 						break;
 					case 9: 
-						playState.add(playState.unitsText);
+						
 						break;
 					case 10: 
-						playState.add(playState.planetsText);
+						playState.add(playState.goldText);
 						break;
 					case 11: 
-						playState.goldText.size = playState.unitsText.size = playState.planetsText.size = 10;
+						playState.add(playState.unitsText);
 						break;
 					case 12: 
-						playState.goldText.scrollFactor.x = playState.goldText.scrollFactor.y = 0;
+						playState.add(playState.planetsText);
 						break;
 					case 13: 
-						playState.unitsText.scrollFactor.x = playState.unitsText.scrollFactor.y = 0;
+						playState.goldText.scrollFactor.x = playState.goldText.scrollFactor.y = 0;
 						break;
 					case 14: 
-						playState.planetsText.scrollFactor.x = playState.planetsText.scrollFactor.y = 0;
+						playState.unitsText.scrollFactor.x = playState.unitsText.scrollFactor.y = 0;
 						break;
 					case 15: 
-						menu.scrollFactor.x = menu.scrollFactor.y = 0;
+						playState.planetsText.scrollFactor.x = playState.planetsText.scrollFactor.y = 0;
 						break;
 					case 16: 
-						FlxG.bgColor = 0xff386860;
+						menu.scrollFactor.x = menu.scrollFactor.y = 0;
 						break;
 					case 17: 
-						FlxG.worldBounds = new FlxRect(0, 0, playState.currentLevel.width, playState.currentLevel.height);
+						playState.goldText.size = playState.unitsText.size = playState.planetsText.size = 10;
 						break;
 					case 18: 
-						playState.miniMap = new MiniMap(4, FlxG.height - 114, playState.currentLevel.width, playState.currentLevel.height, playState.currentLevel.planets);
+						FlxG.worldBounds = new FlxRect(0, 0, playState.currentLevel.width, playState.currentLevel.height);
 						break;
 					case 19: 
-						playState.add(playState.miniMap.map);
+						playState.miniMap = new MiniMap(4, FlxG.height - 114, playState.currentLevel.width, playState.currentLevel.height, playState.currentLevel.planets);
 						break;
 					case 20: 
-						playState.add(playState.miniMap.screenRectangle);
+						playState.add(playState.miniMap.map);
 						break;
 					case 21: 
+						playState.add(playState.miniMap.screenRectangle);
 						playState.buildMenuManager = new BuildMenuManager(playState.currentLevel);
 						break;
 					case 22: 
-						playState.add(playState.buildMenuManager.returnSpritesAsFlxGroup());
+						playState.add(playState.add(playState.buildMenuManager.colonizingIcons));
 						break;
 					case 23: 
+						playState.add(playState.add(playState.buildMenuManager.factoryIcons));
+						playState.add(playState.add(playState.buildMenuManager.hqIcon));
+						break;
+					case 24: 
+						playState.add(playState.buildMenuManager.buildTimerBar);
+						break;
+					case 25: 
+						playState.add(playState.buildMenuManager.returnIconsAsFlxGroup());
+						break;
+					case 26:
+						
+						break;
+					case 27:
+						
+						break;
+					case 28: 
 						introText.text = "\nClick To Play";
 						loaded = true;
 						break;

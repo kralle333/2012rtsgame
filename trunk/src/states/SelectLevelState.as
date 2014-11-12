@@ -2,7 +2,7 @@ package states
 {
 	import adobe.utils.CustomActions;
 	import flash.utils.Dictionary;
-	import gameclasses.Player;
+	import gameclasses.players.*;
 	import levels.*;
 	import org.flixel.*;
 	
@@ -19,6 +19,8 @@ package states
 			add(levelsDict[1]);
 			levelsDict[2] = new FlxButton(xPos, 100, "Level 3", clickedTwo)
 			add(levelsDict[2]);
+			levelsDict[3] = new FlxButton(xPos, 120, "Level 4", clickedThree)
+			add(levelsDict[3]);
 		}
 		
 		private function clickedZero():void
@@ -40,7 +42,12 @@ package states
 			FlxG.switchState(lls);
 			lls.setCurrentLevel(new Level3());
 		}
-
+		private function clickedThree():void
+		{
+			var lls:LoadLevelState = new LoadLevelState();
+			FlxG.switchState(lls);
+			lls.setCurrentLevel(new Level4());
+		}
 	}
 
 }

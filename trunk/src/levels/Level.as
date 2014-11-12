@@ -1,7 +1,7 @@
 package levels 
 {
-	import gameclasses.Player;
-	import gameclasses.ShipManager;
+	import gameclasses.players.*;
+	import gameclasses.ships.*;
 	import org.flixel.FlxGroup;
 	import gameclasses.planets.*;
 	import gameclasses.*;
@@ -17,7 +17,6 @@ package levels
 		public var height:int = 0;
 		public function Level(ships:int,width:int,height:int) 
 		{
-			shipManager = new ShipManager(200);
 			if (width < 800)
 			{
 				this.width = 800;
