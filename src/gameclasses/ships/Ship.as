@@ -2,35 +2,42 @@ package gameclasses.ships
 {
 	import flash.display.BitmapData;
 	import flash.geom.Rectangle;
+	import misc.PotentialFieldCalculator;
+	import misc.ShipMath;
 	import org.flixel.*;
 	import org.flixel.plugin.photonstorm.*;
 	import gameclasses.*;
 	import gameclasses.planets.*;
+	import gameclasses.players.*;
 	import flash.geom.ColorTransform;
 	
 	public class Ship extends FlxSprite
 	{
+		private var planetRoute:Array = new Array();
 		public var planet:Planet = null;
 		public var planetFlyingTo:Planet = null;
-		private var exitAngle:Number = 0;
-		private var exitPosition:FlxPoint;
 		public var canShoot:Boolean = true;
 		public var owner:Player;
 		private var shootTimer:FlxTimer;
 		private var showHealthBarTimer:FlxTimer;
-		private var maneuverTimer:FlxTimer;
 		
 		private var shootingRange:int = 5;
 		public var angleToPlanet:Number = 0;
 		public var healthBar:FlxBar;
 		protected var speed:Number = 0.01;
+		protected var directionAngle:Number = -1;
+		public var smoothChangeAngle:Number = -1;
+		private var smoothCounter:int = 0;
+		public var initHealth:int = 0;
 		
 		protected var shipHeight:Number = 0;
 		static public var flyingDistance:int = 50;
 		public var enemy:Ship = null;
+		public var ally:Ship = null;
+		protected var flightPath:Array = new Array();		
 		
-		public var cost:int = 0;
-		public var buildTime:Number = 0;
+		static public var cost:int = 0;
+		static public var buildTime:Number = 0;
 		
 		public function Ship(texture:Class, shipHealth:int)
 		{
@@ -43,14 +50,15 @@ package gameclasses.ships
 			healthBar.exists = false;
 			showHealthBarTimer = new FlxTimer();
 			showHealthBarTimer.finished = true;
+			initHealth = shipHealth;
 		}
-				
+		
 		public function changeColor(changeColor:uint):void
 		{
 			var bit:BitmapData = pixels;
-			for (var x:int = 0; x < pixels.width; x++) 
+			for (var x:int = 0; x < pixels.width; x++)
 			{
-				for (var y:int = 0; y <pixels.height ; y++) 
+				for (var y:int = 0; y < pixels.height; y++)
 				{
 					if (bit.getPixel(x, y) == 0xFFFFFF)
 					{
@@ -60,32 +68,10 @@ package gameclasses.ships
 			}
 			pixels = bit;
 		}
+		
 		public function sendToPlanet(newPlanet:Planet):void
 		{
 			planetFlyingTo = newPlanet;
-			if (Math.abs(planet.y - newPlanet.y) > Math.abs(planet.x - newPlanet.x))
-			{
-				if (newPlanet.y < planet.y)
-				{
-					exitAngle = Math.PI;
-				}
-				else
-				{
-					exitAngle = 0;
-				}
-				
-			}
-			else
-			{
-				if (newPlanet.x < planet.x)
-				{
-					exitAngle = Math.PI / 2;
-				}
-				else
-				{
-					exitAngle = (3 * Math.PI / 2);
-				}
-			}
 		}
 		
 		override public function update():void
@@ -101,17 +87,26 @@ package gameclasses.ships
 			}
 			if (planet != null)
 			{
-				circlePlanet();
-				if (planetFlyingTo != null && Math.abs(exitAngle - angleToPlanet) < 0.02)
+				if (smoothChangeAngle != -1)
+				{
+					smoothCounter++;
+					angle = smoothChangeAngle;
+					if (smoothCounter >= 50)
+					{
+						smoothCounter = 0;
+						smoothChangeAngle = -1;
+						angle = directionAngle;
+					}
+				}
+				if (planetFlyingTo != null && shouldLeavePlanet() )
 				{
 					//Flying from old planet
 					leavePlanet();
-					
 				}
 			}
 			else if (planetFlyingTo != null)
 			{
-				if (planetFlyingTo.distanceToShipFromOrigin(this) - planetFlyingTo.width / 2 - shipHeight < 23)
+				if (ShipMath.getDistanceFromShipToPlanetOrigin(this,planetFlyingTo) - planetFlyingTo.width / 2 - shipHeight < 23)
 				{
 					landOnNewPlanet();
 				}
@@ -126,7 +121,10 @@ package gameclasses.ships
 			{
 				exists = false;
 				healthBar.exists = false;
-				planet.removeShip(this);
+				if (planet != null)
+				{
+					planet.removeShip(this);
+				}
 			}
 			showHealthBarTimer.start(4);
 		}
@@ -134,10 +132,14 @@ package gameclasses.ships
 		public function justShot():void
 		{
 			canShoot = false;
-			shootTimer.start(5);
+			shootTimer.start(3);
 		}
-		
-		private function circlePlanet():void
+		private function shouldLeavePlanet():Boolean
+		{
+			//if the distance from the ship to the new planet is shorter than the distance from the old planet to the new planet, then yes!
+			return FlxMath.vectorLength(this.x - (planetFlyingTo.x + planetFlyingTo.origin.x), this.y - (planetFlyingTo.y + planetFlyingTo.origin.y)) < FlxMath.vectorLength((planet.x + planet.origin.x) - (planetFlyingTo.x + planetFlyingTo.origin.x), (planet.y + planet.origin.y) - (planetFlyingTo.y + planetFlyingTo.origin.y));
+		}
+		protected function circlePlanet():void
 		{
 			x = -width / 2 + planet.origin.x + planet.x + (planet.width / 2 + flyingDistance + shipHeight) * Math.cos(angleToPlanet);
 			y = -height / 2 + planet.origin.y + planet.y + (planet.height / 2 + flyingDistance + shipHeight) * Math.sin(angleToPlanet);
@@ -149,21 +151,31 @@ package gameclasses.ships
 			}
 		}
 		
-		private function leavePlanet():void
+		protected function leavePlanet():void
 		{
-			var flyAngle:Number = Math.atan2((y+origin.y) - (planetFlyingTo.y+planetFlyingTo.origin.y), (x+origin.x) - (planetFlyingTo.x+planetFlyingTo.origin.x));
+			var flyAngle:Number = Math.atan2((y + origin.y) - (planetFlyingTo.y + planetFlyingTo.origin.y), (x + origin.x) - (planetFlyingTo.x + planetFlyingTo.origin.x));
 			var extraSpeed:int = 0;
 			flyAngle += Math.PI;
+			
 			if (planet.owner == this.owner && planetFlyingTo.owner == this.owner)
 			{
 				extraSpeed = 10;
 			}
 			velocity.x = (extraSpeed + 50) * Math.cos(flyAngle);
 			velocity.y = (extraSpeed + 50) * Math.sin(flyAngle);
+			angle = Math.atan2(velocity.y,velocity.x)*180/Math.PI-90
 			planet.removeShip(this);
 			planet = null;
 		}
-		
+		public function addFlyingRoute(planets:Array):void
+		{
+			for (var i:int = 0; i < planets.length; i++) 
+			{
+				planetRoute.push(planets[i]);
+			}
+			planetFlyingTo = planetRoute[0];
+			planetRoute.shift();
+		}
 		private function landOnNewPlanet():void
 		{
 			//Landing at new planet
@@ -173,6 +185,11 @@ package gameclasses.ships
 			planetFlyingTo.getShip(this);
 			planet = planetFlyingTo;
 			planetFlyingTo = null;
+			if (planetRoute.length > 0)
+			{
+				planetFlyingTo = planetRoute[0];
+				planetRoute.shift();
+			}
 		
 		}
 	}

@@ -3,11 +3,13 @@ package states
 	import flash.media.Camera;
 	import flash.utils.Dictionary;
 	import gameclasses.buildings.FactoryBuilding;
-	import gameclasses.buildmenu.BuildMenuManager;
-	import gameclasses.menu.MenuManager;
+	import gameclasses.menu.*;
 	import gameclasses.planets.Planet;
 	import gameclasses.ships.*;
+	import gameclasses.menu.building.*;
+	import gameclasses.players.*;
 	import levels.Level;
+	import misc.*;
 	import org.flixel.*;
 	import gameclasses.*;
 	import org.flixel.plugin.photonstorm.*;
@@ -20,7 +22,11 @@ package states
 		public var currentLevel:Level;
 		private var cameraSet:Boolean = false;
 		private var planetPressed:Boolean = false;
-		private var currentPlanet:Planet
+		private var planetIterator:Planet
+		private var pressedPlanet:Planet;
+		
+		public var shipSelection:ShipSelection;
+		private var currentHumanShip:Ship;
 		
 		//Text
 		public var goldText:FlxText = new FlxText(5, 5, 300, "0 g");
@@ -40,16 +46,18 @@ package states
 		[Embed(source='../../assets/sound.mp3')]
 		private var music:Class;
 		
-		public var flyingDistance:FlxSprite = new FlxSprite();
-		
+		public var fogOfWar:FogOfWar;
 		public var buildMenuManager:BuildMenuManager;
-		public var menuManager:MenuManager = new MenuManager();
 		public var miniMap:MiniMap;
+		public var planetInfo:PlanetInfo;
+		
+		public var controlGroups:Dictionary = new Dictionary();
 		
 		override public function create():void
 		{
 			super.create();
 		}
+		
 		override public function update():void
 		{
 			super.update();
@@ -65,7 +73,7 @@ package states
 					currentLevel.players[i].update();
 				}
 			}
-			handleScreenPosition();
+			
 			if (currentLevel.winningCondition.won(currentLevel.humanPlayer))
 			{
 				FlxG.switchState(new ScoreScreenState(currentLevel));
@@ -74,45 +82,106 @@ package states
 			unitsText.text = currentLevel.humanPlayer.ships.length + " ships";
 			planetsText.text = currentLevel.humanPlayer.ownedPlanets.length + " planets";
 			
-			miniMap.update();
-			menuManager.update();
-			buildMenuManager.update();
-			for (var planet:String in currentLevel.planets.members)
+			if (controlGroups[FlxG.keys.any] != null)
 			{
-				if (currentLevel.planets.members[planet].overlapsPoint(new FlxPoint(FlxG.mouse.x, FlxG.mouse.y)))
-				{
-					currentPlanet = currentLevel.planets.members[planet];
-					if (FlxG.mouse.justPressed())
-					{
-						planetPressed = true;
-						menuManager.handlePlanetPress(currentPlanet, currentLevel.humanPlayer, currentLevel.shipManager);
-						buildMenuManager.handlePlanetPress(currentPlanet);
-					}
-					menuManager.handleMouseOverPlanet(currentPlanet);
-				}
+				
 			}
-			if (!planetPressed && FlxG.mouse.justPressed() && menuManager.selecting)
+			if (pressedPlanet != null)
 			{
-				menuManager.hideCurrentMenu();
+				planetInfo.drawPlanetInfo(pressedPlanet);
+			}
+			miniMap.update();
+			buildMenuManager.update();
+			handleShips();
+			handlePlanets();
+			if (FlxG.mouse.justPressed() && FlxG.mouse.y< FlxG.height-118 && planetPressed == false)
+			{
+				shipSelection.hide();
 			}
 			planetPressed = false;
-		
+			handleScreenPosition();
+			shipSelection.update();
 		}
-
 		
-		private function drawFlyingDistance(x:int, y:int):void
+		private function handleShips():Boolean
 		{
-			if (x != flyingDistance.x && y != flyingDistance.y)
+			for (var ship:String in currentLevel.humanPlayer.ships)
 			{
-				var circ:Shape = new Shape();
-				circ.graphics.lineStyle(0);
-				circ.graphics.drawCircle(x, y, 100);
-				var bitMap:BitmapData = new BitmapData(800, 600, true, 0x00FFffFF);
-				bitMap.draw(circ);
-				flyingDistance.pixels = bitMap;
-				bitMap.dispose();
-				flyingDistance.exists = true;
+				currentHumanShip = currentLevel.humanPlayer.ships[ship];
+				if (ShipMath.mouseOverlapsShip(currentHumanShip))
+				{
+					shipSelection.addShip(currentHumanShip);
+					return true;
+				}
 			}
+			return false;
+		}
+		
+		private function handlePlanets():Boolean
+		{
+			for (var planet:String in currentLevel.planets.members)
+			{
+				planetIterator = currentLevel.planets.members[planet];
+				if (ShipMath.mouseOverlapsPlanet(planetIterator))
+				{
+					if (shipSelection.flyRouting.routingShown)
+					{
+						shipSelection.flyRouting.addPlanet(planetIterator);
+					}
+					if (FlxG.mouse.justPressed())
+					{
+						pressedPlanet = planetIterator;
+						var onlyChecked:Boolean = onlyChecksOrSelectingShips();
+						planetPressed = true;
+						if (onlyChecked)
+						{							
+							buildMenuManager.handlePlanetPress(planetIterator);
+						}
+						
+					}
+				}
+				if (planetIterator.shipsToBeAdded.length > 0)
+				{
+					for (var j:int = 0; j < planetIterator.shipsToBeAdded.length; j++)
+					{
+						currentLevel.shipManager.addShips(planetIterator, 1, planetIterator.owner, planetIterator.shipsToBeAdded[j]);
+					}
+					planetIterator.shipsToBeAdded = new Array();
+				}
+				planetIterator.productionQueue.update();
+			}
+			return planetPressed;
+		}
+		
+		private function onlyChecksOrSelectingShips():Boolean
+		{
+			if (FlxG.keys.Z || FlxG.keys.A || FlxG.keys.S || FlxG.keys.D)
+			{
+				var ships:Array = new Array();
+				if (FlxG.keys.Z)
+				{
+					ships = pressedPlanet.getShipsOfTypeOfPlayer(currentLevel.humanPlayer);
+				}
+				else if (FlxG.keys.A)
+				{
+					ships = pressedPlanet.getShipsOfTypeOfPlayer(currentLevel.humanPlayer, MinerShip);
+				}
+				else if (FlxG.keys.S)
+				{
+					ships = pressedPlanet.getShipsOfTypeOfPlayer(currentLevel.humanPlayer, AttackerShip);
+				}
+				else if (FlxG.keys.D)
+				{
+					ships = pressedPlanet.getShipsOfTypeOfPlayer(currentLevel.humanPlayer, ColonizerShip);
+				}
+				if (ships != null && ships.length > 0)
+				{
+					shipSelection.flyRouting.addPlanet(planetIterator);
+					shipSelection.show(ships);
+				}
+				return false;
+			}
+			return true;
 		}
 		
 		private function handleScreenPosition():void
@@ -134,7 +203,7 @@ package states
 					scroll.y -= 5;
 				}
 			}
-			if (FlxG.mouse.screenX > FlxG.width - 30 && FlxG.mouse.screenY < FlxG.height - 118)
+			if (FlxG.mouse.screenX > FlxG.width - 30)
 			{
 				FlxG.camera.scroll.x += 5;
 				if (FlxG.camera.scroll.x + FlxG.width <= FlxG.camera.bounds.right)
@@ -142,10 +211,10 @@ package states
 					scroll.x += 5;
 				}
 			}
-			if (FlxG.mouse.screenY > FlxG.height - 118 - 30 - 15 && FlxG.mouse.screenY < FlxG.height - 118 - 15)
+			if (FlxG.mouse.screenY > FlxG.height - 30)
 			{
 				FlxG.camera.scroll.y += 5;
-				if (FlxG.camera.scroll.y + FlxG.height <= FlxG.camera.bounds.right)
+				if (FlxG.camera.scroll.y + FlxG.height <= FlxG.camera.bounds.bottom)
 				{
 					scroll.y += 5;
 				}

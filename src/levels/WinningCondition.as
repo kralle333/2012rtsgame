@@ -1,8 +1,9 @@
 package levels
 {
-	import gameclasses.ComputerPlayer;
+	import gameclasses.menu.*;
+	import gameclasses.players.*;
 	import gameclasses.planets.*;
-	import gameclasses.Player;
+	import gameclasses.players.*;
 	import gameclasses.ships.*;
 	
 	public class WinningCondition
