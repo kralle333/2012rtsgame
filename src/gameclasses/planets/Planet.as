@@ -70,7 +70,7 @@ package gameclasses.planets
 		public function getShip(ship:Ship):void
 		{
 			ownedShips.add(ship);
-			ship.planet = this;
+			ship.currentPlanet = this;
 			if ((isNaN(shipsOfPlayers[ship.owner]) || shipsOfPlayers[ship.owner] == null))
 			{
 				shipsOfPlayers[ship.owner] = 0;
@@ -87,8 +87,8 @@ package gameclasses.planets
 			owner = player;
 			player.ownedPlanets.add(this);
 			drawOwnership(player.color, player.color, 0);
-			planetOverlay.createGradiantBorder();
-			gradiantBorder.exists = true;
+			//planetOverlay.createGradiantBorder();
+			//gradiantBorder.exists = true;
 		}
 		
 		private function checkOwnership():void
@@ -309,11 +309,11 @@ package gameclasses.planets
 			{
 				if (color1 != color2)
 				{
-					circ.graphics.lineStyle(1, 0x0);
+					circ.graphics.lineStyle(3, 0x0);
 				}
 				else
 				{
-					circ.graphics.lineStyle(1, color1);
+					circ.graphics.lineStyle(3, color1);
 				}
 				
 				circ.graphics.drawCircle(width / 2, width / 2, height / 2 - 1);

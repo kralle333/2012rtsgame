@@ -24,7 +24,7 @@ package gameclasses.ships
 		override public function update():void
 		{
 			super.update();
-			if (timer.finished || (owner.planet != null &&  ShipMath.getDistanceToPlanetOrigin(new FlxPoint(x,y),owner.planet)> owner.planet.size-owner.planet.size/4))
+			if (timer.finished || (owner.currentPlanet != null &&  ShipMath.getDistanceToPlanetOrigin(new FlxPoint(x,y),owner.currentPlanet)> owner.currentPlanet.size-owner.currentPlanet.size/4))
 			{
 				exists = false;
 			}

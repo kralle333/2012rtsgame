@@ -18,7 +18,7 @@ package levels
 			planets.add(p1);
 			planets.add(p2);
 			p1.setOwnership(human);
-			shipManager.addShips(p1, 5, human,MinerShip);
+			shipManager.addShips(p1, 20, human,MinerShip);
 			players.push(human);
 			humanPlayer = human;
 			introText = "Mine 50 gold";

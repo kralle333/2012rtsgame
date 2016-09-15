@@ -53,7 +53,7 @@ package levels
 				ownsPlanet = true;
 			}
 			var beatEnemy:Boolean = false;
-			if (enemy != null && enemy.ships.length == 0)
+			if (enemy != null && enemy.ships.getFirstAlive() == null)
 			{
 				beatEnemy = true;
 			}

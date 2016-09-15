@@ -2,6 +2,7 @@ package gameclasses
 {
 	import flash.display.BitmapData;
 	import flash.display.Shape;
+	import flash.geom.Point;
 	import gameclasses.planets.Planet;
 	import gameclasses.ships.Ship;
 	import misc.ShipMath;
@@ -11,34 +12,62 @@ package gameclasses
 	{
 		private var planets:Array = new Array();
 		private var currentPlanetIndex:int = -1;
-		private var newPlanetAdded:Boolean = false;
-		private var previousPoint:FlxPoint = new FlxPoint();
-		private var previousLines:Array = new Array();
-		private var flyingDistance:int = 1000;
+		private var lines:Array = new Array();
+		
+		private var flyingDistance:int = 300;
 		private var shipsSelected:Array = new Array();
 		public var routingShown:Boolean = false;
+		private var bitMap:BitmapData;
 		
 		public function FlyRouting()
 		{
 			makeGraphic(800, 600, 0x0);
 			scrollFactor.x = scrollFactor.y = 0;
+			bitMap  = new BitmapData(800, 800, true, 0x00FFffFF);
 		}
 		
 		override public function update():void
 		{
 			super.update();
-			if (planets.length > 0 && (newPlanetAdded || (previousPoint.x != FlxG.mouse.screenX && previousPoint.y != FlxG.mouse.screenY)) && ShipMath.getDistanceToPlanetOrigin(new FlxPoint(FlxG.mouse.screenX, FlxG.mouse.screenY), planets[currentPlanetIndex]) < flyingDistance)
+			if (planets.length > 0)
 			{
-				var line:Shape = new Shape();
+				bitMap = new BitmapData(800, 800, true, 0x00FFffFF);
+				var line:Shape =new Shape();
 				line.graphics.lineStyle(0, 0x0000FF);
-				line.graphics.moveTo(planets[currentPlanetIndex].x + planets[currentPlanetIndex].origin.x, planets[currentPlanetIndex].y + planets[currentPlanetIndex].origin.y);
-				line.graphics.lineTo(FlxG.mouse.screenX, FlxG.mouse.screenY);
-				var bitMap:BitmapData = new BitmapData(800, 800, true, 0x00FFffFF);
-				bitMap.draw(line);
-				pixels = bitMap;
-				previousPoint = new FlxPoint(FlxG.mouse.screenX, FlxG.mouse.screenY);
-				stampPreviousLines();
-				newPlanetAdded = false;
+				var startPoint:Point = new Point(-FlxG.camera.scroll.x+planets[currentPlanetIndex].x + planets[currentPlanetIndex].origin.x,-FlxG.camera.scroll.y+ planets[currentPlanetIndex].y + planets[currentPlanetIndex].origin.y);
+				var endPoint:Point = new Point(FlxG.mouse.screenX, FlxG.mouse.screenY);
+				
+				var distance:Number = Math.sqrt(Math.pow(endPoint.x - startPoint.x,2) + Math.pow(endPoint.y-startPoint.y,2));
+				if (distance > flyingDistance)
+				{
+					var normalized:Point = new Point((endPoint.x - startPoint.x),(endPoint.y-startPoint.y));
+					normalized.x = normalized.x / distance;
+					normalized.y = normalized.y / distance;
+					normalized.x *= flyingDistance;
+					normalized.y *= flyingDistance;
+					normalized.x = normalized.x + startPoint.x;
+					normalized.y = normalized.y + startPoint.y;
+					endPoint = normalized;
+				}
+				
+				
+				line.graphics.moveTo(startPoint.x,startPoint.y);
+				line.graphics.lineTo(endPoint.x,endPoint.y);
+				
+				
+				
+
+				for (var j:int = 0; j < planets.length - 1; j++)
+				{
+					var planetLine:Shape = new Shape();					
+					planetLine.graphics.lineStyle(0, 0x0000FF);
+					planetLine.graphics.moveTo(-FlxG.camera.scroll.x+planets[j].x + planets[j].origin.x,-FlxG.camera.scroll.y+ planets[j].y + planets[j].origin.y);
+					planetLine.graphics.lineTo( -FlxG.camera.scroll.x + planets[j + 1].x + planets[j + 1].origin.x, -FlxG.camera.scroll.y + planets[j + 1].y + planets[j + 1].origin.y);
+					bitMap.draw(planetLine);
+				}
+
+					bitMap.draw(line);
+					pixels = bitMap;				
 			}
 			if (currentPlanetIndex > 0 && ShipMath.planetClicked(planets[currentPlanetIndex]))
 			{
@@ -50,17 +79,11 @@ package gameclasses
 					shipsSelected[i].addFlyingRoute(planets);
 				}
 				hide();
-				addPlanet(lastPlanet);
 			}
+			
 		}
-		
-		private function stampPreviousLines():void
-		{
-			for (var i:int = 0; i < previousLines.length; i++)
-			{
-				stamp(previousLines[i]);
-			}
-		}
+
+
 		
 		public function addPlanet(planet:Planet):void
 		{
@@ -73,27 +96,12 @@ package gameclasses
 					currentPlanetIndex++;
 					planets.push(planet);
 					exists = true;
-					if (planets.length > 1)
-					{
-						var line:Shape = new Shape();
-						line.graphics.lineStyle(0, 0x0000FF);
-						line.graphics.moveTo(planet.x + planet.origin.x, planet.y + planet.origin.y);
-						line.graphics.lineTo(planets[planets.length - 2].x + planets[planets.length - 2].origin.x, planets[planets.length - 2].y + planets[planets.length - 2].origin.y);
-						var bitMap:BitmapData = new BitmapData(800, 800, true, 0x00FFffFF);
-						bitMap.draw(line);
-						var overlay:FlxSprite = new FlxSprite().makeGraphic(800, 800, 0x00ffffff);
-						overlay.pixels = bitMap;
-						previousLines.push(overlay);
-						stamp(overlay);
-						newPlanetAdded = true;
-					}
 				}
 			}
 			else
 			{
 				while (index != currentPlanetIndex)
 				{
-					previousLines.pop();
 					planets.pop();
 					currentPlanetIndex--;
 				}
@@ -139,8 +147,7 @@ package gameclasses
 		{
 			shipsSelected = new Array();
 			planets.splice(0)
-			previousLines.splice(0);
-			previousPoint = new FlxPoint(-1, -1);
+			lines.splice(0);
 			currentPlanetIndex = -1;
 			exists = false;
 			routingShown = false;

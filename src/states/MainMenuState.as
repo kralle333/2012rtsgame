@@ -12,7 +12,9 @@ package states
 		public function MainMenuState()
 		{
 			startButton = new FlxButton(320, 450, "Start Game", startClicked);
+			startButton.scale = new FlxPoint(2, 2);
 			selectLevelButton = new FlxButton(320, 500, "Select Level", selectClicked);
+			selectLevelButton.scale = new FlxPoint(2, 2);
 			add(title);
 			add(startButton);
 			add(selectLevelButton);

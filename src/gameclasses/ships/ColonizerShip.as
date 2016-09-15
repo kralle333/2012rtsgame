@@ -7,6 +7,7 @@ package gameclasses.ships
 		private var texture:Class;
 		static public var cost:int = 30;
 		static public var buildTime:Number = 30;
+		static public var name:String = "Builder";
 		
 		public function ColonizerShip() 
 		{

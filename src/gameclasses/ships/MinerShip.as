@@ -24,15 +24,15 @@ package gameclasses.ships
 		public var currentState:int = 1;
 		
 		private var homeRoute:Array = new Array();
-		private var addedCurrentPlanet:Boolean = false;
 		
 		private var mineTimer:FlxTimer;
 		private var rayTimer:FlxTimer;
 		
-		private var miningPlanet:Planet;
+		private var miningPlanet:GoldPlanet;
 		
-		static public var cost:int = 10;
-		static public var buildTime:Number = 10;
+		static public var cost:int = 30;
+		static public var buildTime:Number = 20;
+		static public var name:String = "Miner";
 		
 		public function MinerShip()
 		{
@@ -40,10 +40,7 @@ package gameclasses.ships
 			mineTimer = new FlxTimer();
 			mineTimer.finished = true;
 			rayTimer = new FlxTimer();
-			health = 5;
 			flyingDistance = 20;
-			cost = 10;
-			buildTime = 10;
 		}
 		
 		override public function changeColor(color:uint):void
@@ -61,56 +58,59 @@ package gameclasses.ships
 			addAnimation("goldFull", [3], 0, false);
 			play("goldNone");
 		}
+		override public function damage(amount:int):void 
+		{
+			super.damage(amount);
+			if (health <= 0)
+			{
+				raySprite.exists = false;
+			}
+		}
 		
 		override public function update():void
 		{
 			super.update();
-			if (planet != null)
+			if (currentPlanet != null)
 			{
 				circlePlanet();
 			}
-			if (!addedCurrentPlanet && planetFlyingTo != null && planet != null)
+
+			if (!mining)
 			{
-				if (planet.owner == owner)
+				 if (goldHolding < capacity && currentPlanet != null && currentPlanet is GoldPlanet && GoldPlanet(currentPlanet).goldLeft > 0)
 				{
-					homeRoute.push(planet);
-					addedCurrentPlanet = true;
+					mining = true;
+					miningPlanet = GoldPlanet(currentPlanet);
+					speed -= 0.005;
 				}
 			}
-			
-			if (planet != null && mining)
+			else if (mining)
 			{
 				angle += 270;
 				raySprite.angle = angle;
-				raySprite.x = -raySprite.width / 2 + planet.origin.x + planet.x + (5 + planet.size / 2) * Math.cos(angleToPlanet);
-				raySprite.y = -raySprite.height / 2 + planet.origin.y + planet.y + (5 + planet.size / 2) * Math.sin(angleToPlanet);
+				raySprite.x = -raySprite.width / 2 + currentPlanet.origin.x + currentPlanet.x + (5 + currentPlanet.size / 2) * Math.cos(angleToPlanet);
+				raySprite.y = -raySprite.height / 2 + currentPlanet.origin.y + currentPlanet.y + (5 + currentPlanet.size / 2) * Math.sin(angleToPlanet);
 				if (mineTimer.finished)
 				{
-					GoldPlanet(planet).goldLeft--;
+					miningPlanet.goldLeft--;
 					goldHolding++;
 					updateCurrentSprite();
 					mineTimer.start(1);
 					rayTimer.start(0.5);
 					raySprite.exists = true;
 				}
-			}
-			else if (goldHolding < capacity && planet != null && planet is GoldPlanet && GoldPlanet(planet).goldLeft > 0)
-			{
-				mining = true;
-				miningPlanet = planet;
-				speed -= 0.005;
-			}
-			else
-			{
-				speed = 0.01;
-				mining = false;
-				raySprite.exists = false;		
+				if (rayTimer.finished)
+				{
+					raySprite.exists = false;
+				}
+				if (goldHolding >= capacity || miningPlanet.goldLeft <= 0)
+				{
+					speed = 0.01;
+					mining = false;
+					raySprite.exists = false;		
+				}
 			}
 			
-			if (rayTimer.finished)
-			{
-				raySprite.exists = false;
-			}
 			if (returnHome == false && goldHolding >= capacity)
 			{
 				speed = 0.01;
@@ -121,10 +121,10 @@ package gameclasses.ships
 				if (homeRoute.length > 0)
 				{
 					sendToPlanet(homeRoute[homeRoute.length - 1]);
-					planet.ownedShips.remove(this, true);
+					currentPlanet.ownedShips.remove(this, true);
 				}
 			}
-			if (planet != null && homeRoute[homeRoute.length - 1] == planet)
+			else if (currentPlanet != null && homeRoute[homeRoute.length - 1] == currentPlanet)
 			{
 				owner.gold += goldHolding;
 				goldHolding = 0;
@@ -137,6 +137,15 @@ package gameclasses.ships
 				}
 			}
 		}
+		override public function addFlyingRoute(planets:Array):void 
+		{
+			if (planets[0] is GoldPlanet && planets[planets.length - 1].type == "HQ")
+			{
+				
+			}
+			super.addFlyingRoute(planets);
+		}
+
 		
 		private function updateCurrentSprite():void
 		{

@@ -82,15 +82,12 @@ package states
 			unitsText.text = currentLevel.humanPlayer.ships.length + " ships";
 			planetsText.text = currentLevel.humanPlayer.ownedPlanets.length + " planets";
 			
-			if (controlGroups[FlxG.keys.any] != null)
-			{
-				
-			}
 			if (pressedPlanet != null)
 			{
 				planetInfo.drawPlanetInfo(pressedPlanet);
 			}
 			miniMap.update();
+			shipSelection.update();
 			buildMenuManager.update();
 			handleShips();
 			handlePlanets();
@@ -100,7 +97,6 @@ package states
 			}
 			planetPressed = false;
 			handleScreenPosition();
-			shipSelection.update();
 		}
 		
 		private function handleShips():Boolean

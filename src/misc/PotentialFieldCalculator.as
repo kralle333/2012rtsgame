@@ -19,7 +19,7 @@ package misc
 		static private var allyWeight:int = 1;
 		static private var healthWeight:int = 1;
 		static private var cooldownWeight:int = 1;
-		static private var planetWeight:int = 1;
+		static private var planetWeight:int = -5;
 		static private var nextCornerWeight:int = 1;
 		
 		static private var enemyPotential:int = 0;
@@ -47,7 +47,7 @@ package misc
 		{
 			var speed:FlxPoint = new FlxPoint();
 			var currentPotential:int = -50000;
-			nextCornerPoint = getNextPlanetCorner(ship, ship.planet);
+			nextCornerPoint = getNextPlanetCorner(ship, ship.currentPlanet);
 			for (var x:int = -1; x < 2; x++)
 			{
 				for (var y:int = -1; y < 2; y++)
@@ -99,7 +99,7 @@ package misc
 					{
 						healthPotential = 0;
 					}
-					var planetDistance:int = FlxMath.vectorLength((ship.x + x * speedMultiply) - (ship.planet.x + ship.planet.origin.x), (ship.y + y * speedMultiply) - (ship.planet.y + ship.planet.origin.y));
+					var planetDistance:int = FlxMath.vectorLength((ship.x + x * speedMultiply) - (ship.currentPlanet.x + ship.currentPlanet.origin.x), (ship.y + y * speedMultiply) - (ship.currentPlanet.y + ship.currentPlanet.origin.y));
 					if (planetDistanceFarConstant < planetDistance)
 					{
 						planetPotential = -100 * (planetDistance / planetDistanceFarConstant);

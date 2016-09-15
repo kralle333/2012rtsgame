@@ -39,7 +39,7 @@ package gameclasses.ships
 			{	
 				var s:Ship = Ship(getFirstAvailable(type));
 				s.exists = true;
-				s.planet = planet;
+				s.currentPlanet = planet;
 				s.owner = owner;
 				planet.getShip(s);
 				s.angleToPlanet = Math.random() * Math.PI * 2;
@@ -55,7 +55,7 @@ package gameclasses.ships
 			super.update();
 			for (var i:int = 0; i < length; i++) 
 			{
-				if (members[i].exists && members[i].planet != null)
+				if (members[i].exists && members[i].currentPlanet != null)
 				{
 					if (members[i] is AttackerShip && members[i].canShoot == true)
 					{
@@ -73,7 +73,7 @@ package gameclasses.ships
 		{
 			if (Bullet(bullet).exists && Bullet(bullet).owner.owner != Ship(ship).owner)
 			{
-				Ship(ship).damage(1);
+				Ship(ship).damage(3);
 				Bullet(bullet).exists = false;
 			}
 		}

@@ -34,14 +34,14 @@ package misc
 		{
 			var enemy:Ship;
 			var distance:int = 3000;
-			for (var i:int = 0; i < ship.planet.ownedShips.length; i++) 
+			for (var i:int = 0; i < ship.currentPlanet.ownedShips.length; i++) 
 			{
-				if (ship.planet.ownedShips.members[i] != null &&ship.planet.ownedShips.members[i].exists &&  ship.planet.ownedShips.members[i].owner != ship.owner)
+				if (ship.currentPlanet.ownedShips.members[i] != null &&ship.currentPlanet.ownedShips.members[i].exists &&  ship.currentPlanet.ownedShips.members[i].owner != ship.owner)
 				{
-					var enemyDistance:int = FlxMath.vectorLength(ship.planet.ownedShips.members[i].x - ship.x, ship.planet.ownedShips.members[i].y - ship.y);
+					var enemyDistance:int = FlxMath.vectorLength(ship.currentPlanet.ownedShips.members[i].x - ship.x, ship.currentPlanet.ownedShips.members[i].y - ship.y);
 					if (enemyDistance<distance)
 					{
-						enemy = ship.planet.ownedShips.members[i];
+						enemy = ship.currentPlanet.ownedShips.members[i];
 						distance = enemyDistance;
 					}
 				}
@@ -57,14 +57,14 @@ package misc
 		{
 			var ally:Ship;
 			var distance:int = 3000;
-			for (var i:int = 0; i < ship.planet.ownedShips.length; i++) 
+			for (var i:int = 0; i < ship.currentPlanet.ownedShips.length; i++) 
 			{
-				if (ship.planet.ownedShips.members[i] != null &&ship.planet.ownedShips.members[i].exists && ship.planet.ownedShips.members[i].owner == ship.owner)
+				if (ship.currentPlanet.ownedShips.members[i] != null &&ship.currentPlanet.ownedShips.members[i].exists && ship.currentPlanet.ownedShips.members[i].owner == ship.owner)
 				{
-					var allyDistance:int = FlxMath.vectorLength(ship.planet.ownedShips.members[i].x - ship.x, ship.planet.ownedShips.members[i].y - ship.y);
+					var allyDistance:int = FlxMath.vectorLength(ship.currentPlanet.ownedShips.members[i].x - ship.x, ship.currentPlanet.ownedShips.members[i].y - ship.y);
 					if (allyDistance<distance)
 					{
-						ally = ship.planet.ownedShips.members[i];
+						ally = ship.currentPlanet.ownedShips.members[i];
 						distance = allyDistance;
 					}
 				}
@@ -76,39 +76,36 @@ package misc
 			}
 			return null;
 		}
-		
-		static public function shipClicked(ship:Ship):Boolean
-		{
-			if (FlxG.mouse.screenY < FlxG.height - 118 && FlxG.mouse.justPressed())
-			{
-				return ship.overlapsPoint(new FlxPoint(FlxG.mouse.screenX, FlxG.mouse.screenY));
-			}
-			return false;
-		}
-		static public function planetClicked(planet:Planet):Boolean
-		{
-			
-			if (FlxG.mouse.screenY < FlxG.height - 118&& FlxG.mouse.justPressed())
-			{
-				return planet.overlapsPoint(new FlxPoint(FlxG.mouse.screenX, FlxG.mouse.screenY));
-			}
-			return false;
-		}
-		static public function mouseOverlapsPlanet(planet:Planet):Boolean
-		{
-			if (FlxG.mouse.screenY < FlxG.height - 118)
-			{
-				return planet.overlapsPoint(new FlxPoint(FlxG.mouse.screenX, FlxG.mouse.screenY));
-			}
-			return false;
-		}
 		static public function mouseOverlapsShip(ship:Ship):Boolean
 		{
-			if (FlxG.mouse.screenY < FlxG.height - 118)
+			return overLapsPoint(ship,new FlxPoint(FlxG.mouse.screenX+FlxG.camera.scroll.x, FlxG.mouse.screenY+FlxG.camera.scroll.y));
+		}
+		static public function shipClicked(ship:Ship):Boolean
+		{
+			if (FlxG.mouse.justPressed())
 			{
-				return ship.overlapsPoint(new FlxPoint(FlxG.mouse.screenX, FlxG.mouse.screenY));
+				return mouseOverlapsShip(ship);
 			}
 			return false;
+		}
+
+		static public function mouseOverlapsPlanet(planet:Planet):Boolean
+		{
+			return overLapsPoint(planet,new FlxPoint(FlxG.mouse.screenX+FlxG.camera.scroll.x, FlxG.mouse.screenY+FlxG.camera.scroll.y));
+		}
+		static public function planetClicked(planet:Planet):Boolean
+		{			
+			if (FlxG.mouse.justPressed())
+			{
+				return mouseOverlapsPlanet(planet);
+			}
+			return false;
+		}
+
+
+		private static function overLapsPoint(object:FlxSprite,point:FlxPoint):Boolean
+		{
+			return point.x > object.x && point.x < object.x + object.width && point.y > object.y && point.y < object.y + object.height;
 		}
 	}
 

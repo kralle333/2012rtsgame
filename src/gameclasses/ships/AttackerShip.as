@@ -17,35 +17,37 @@ package gameclasses.ships
 		private var inPlanetRing:Boolean = true;
 		private var flyingToCircle:Boolean = false;
 		public var enemyNear:Boolean;
-		static public var cost:int = 20;
-		static public var buildTime:Number = 30;
+
 		private var maneuverTimer:FlxTimer = new FlxTimer();
 		private var newEnemyTimer:FlxTimer = new FlxTimer();
+		
+
+		
+		static public var cost:int = 10;
+		static public var buildTime:Number = 20;
+		static public var name:String = "Fighter";
 		
 		public function AttackerShip()
 		{
 			super(texture, 10);
-			health = 10;
 			speed = 0.015;
 			heightTimer.finished = true;
 			flyingDistance = 40;
-			cost = 20;
-			buildTime = 20;
 			maneuverTimer.finished = true;
 		}
 		
-		override public function update():void
+		public override function update():void
 		{
 			super.update();
 			moveShip();
 		}
 		
-		override public function changeColor(changeColor:uint):void
+		public override function changeColor(changeColor:uint):void
 		{
 			super.changeColor(changeColor);
 		}
 		
-		override protected function leavePlanet():void
+		protected override function leavePlanet():void
 		{
 			enemy = null;
 			ally = null;
@@ -59,12 +61,12 @@ package gameclasses.ships
 				controlAttacking();
 				inPlanetRing = false;
 			}
-			else if (planet != null && !inPlanetRing)
+			else if (currentPlanet != null && !inPlanetRing)
 			{
-				if (ShipMath.getDistanceFromShipToPlanetOrigin(this, planet) >= planet.size / 2+shipHeight)
+				if (ShipMath.getDistanceFromShipToPlanetOrigin(this, currentPlanet) >= currentPlanet.size / 2+shipHeight)
 				{
 					inPlanetRing = true;
-					angleToPlanet = ShipMath.getAngleFromShipToPlanet(this, planet);
+					angleToPlanet = ShipMath.getAngleFromShipToPlanet(this, currentPlanet);
 				}
 				else if(!flyingToCircle)
 				{
@@ -74,7 +76,7 @@ package gameclasses.ships
 					flyingToCircle = true;
 				}
 			}
-			else if (planet != null && inPlanetRing)
+			else if (currentPlanet != null && inPlanetRing)
 			{
 				circlePlanet();
 				if (heightTimer.finished)

@@ -6,7 +6,7 @@ package states
 
 	public class ScoreScreenState extends FlxState
 	{
-		private var wonText:FlxText = new FlxText(30, 30, FlxG.width, "You won!\nClick to continue");
+		private var wonText:FlxText = new FlxText(30, 30, FlxG.width, "Level completed!\n\nClick to continue");
 		private var showWonText:Boolean = false;
 		private var level:Level;
 		private var levelManager:LevelManager;
@@ -19,7 +19,7 @@ package states
 		{
 			super.create();
 			add(wonText);
-			wonText.size = 80;
+			wonText.size = 60;
 			wonText.exists = false;
 		}
 		override public function update():void 

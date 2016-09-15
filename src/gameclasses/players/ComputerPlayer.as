@@ -3,6 +3,7 @@ package gameclasses.players
 	import adobe.utils.CustomActions;
 	import flash.utils.Dictionary;
 	import gameclasses.ships.AttackerShip;
+	import gameclasses.ships.ColonizerShip;
 	import gameclasses.ships.MinerShip;
 	import gameclasses.ships.Ship;
 	import org.flixel.*;
@@ -22,6 +23,7 @@ package gameclasses.players
 			super(color, false);
 			shipsDict["Miner"] = new Array();
 			shipsDict["Attacker"] = new Array();
+			shipsDict["Colonizer"]= new Array();
 			this.planets = planets;
 			for (var i:int = 0; i < planets.length; i++)
 			{
@@ -39,9 +41,13 @@ package gameclasses.players
 			{
 				shipsDict["Miner"].push(ship);
 			}
-			else if (ships is AttackerShip)
+			else if (ship is AttackerShip)
 			{
 				shipsDict["Attacker"].push(ship);
+			}
+			else if (ship is ColonizerShip)
+			{
+				shipsDict["Colonizer"].push(ship);
 			}
 		}
 		
@@ -55,7 +61,7 @@ package gameclasses.players
 			{
 				for (var i:int = 0; i < shipsDict["Miner"].length; i++)
 				{
-					if (shipsDict["Miner"][i].returnHome == false && shipsDict["Miner"][i].planet != goldPlanet && shipsDict["Miner"][i].planetFlyingTo == null)
+					if (shipsDict["Miner"][i].returnHome == false && shipsDict["Miner"][i].currentPlanet != goldPlanet && shipsDict["Miner"][i].planetFlyingTo == null)
 					{
 						shipsDict["Miner"][i].sendToPlanet(goldPlanet);
 					}
@@ -65,7 +71,7 @@ package gameclasses.players
 		
 		private function findAndSetNearestGoldPlanet():void
 		{
-			var distance:int = 10000;
+			var distance:int = 300;
 			var dPlanet:Planet;
 			var gPlanet:Planet;
 			
